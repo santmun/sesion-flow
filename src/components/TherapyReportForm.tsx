@@ -85,20 +85,28 @@ export default function TherapyReportForm() {
     const fetchVideos = async () => {
       setIsLoading(true);
       try {
-        // Note: In a real implementation, you would need to set up a proxy or backend
-        // to handle Airtable API calls due to CORS restrictions
-        // For this demo, we'll use mock data
-        const mockVideos: VideoResource[] = [
-          { id: '1', name: 'Meditación Guiada para Ansiedad', url: 'https://example.com/meditacion-ansiedad' },
-          { id: '2', name: 'Ejercicios de Respiración', url: 'https://example.com/respiracion' },
-          { id: '3', name: 'Mindfulness para Principiantes', url: 'https://example.com/mindfulness' },
-          { id: '4', name: 'Técnicas de Relajación Muscular', url: 'https://example.com/relajacion' },
-          { id: '5', name: 'Visualización Positiva', url: 'https://example.com/visualizacion' }
-        ];
+        const AIRTABLE_API_KEY = 'patAsZcUxxbWni0tC.ceaf7a9af7556a89fc0b61139b22de1d7a0bfeaf1d4d24a23c7f7ec19738fab5';
+        const BASE_ID = 'appNw4xrdZ0FHXmLN';
+        const TABLE_ID = 'tblCENUOHskmVW6x0';
         
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setAvailableVideos(mockVideos);
+        const response = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${TABLE_ID}`, {
+          headers: {
+            'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Error al conectar con Airtable');
+        }
+
+        const data = await response.json();
+        const videos: VideoResource[] = data.records.map((record: any) => ({
+          id: record.id,
+          name: record.fields['Nombre Video'] || 'Video sin nombre',
+          url: record.fields['Enlace a Video'] || ''
+        }));
+        
+        setAvailableVideos(videos);
       } catch (error) {
         console.error('Error fetching videos:', error);
         toast({
